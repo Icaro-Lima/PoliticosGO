@@ -83,7 +83,15 @@ public class TileManager : MonoBehaviour
 
             yield return request.SendWebRequest();
 
-            Debug.Log(request.downloadHandler.text);
+            string response = request.downloadHandler.text;
+
+            response = "{ obras : " + response + " }";
+
+            System.IO.File.WriteAllText("leruado.txt", response);
+
+            ObrasJson obras = JsonUtility.FromJson<ObrasJson>(response);
+
+            Debug.Log(obras.obras[0]);
         }
 
         StartCoroutine(loadTiles(18));
