@@ -1,9 +1,14 @@
-﻿using System.Collections;
+﻿using Assets;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class TileManager : MonoBehaviour
 {
+
+    private bool firstTime = true;
 
     private float lat, lon;
     private float Oldlat, Oldlon;
@@ -13,7 +18,7 @@ public class TileManager : MonoBehaviour
 
     [SerializeField]
     private Transform Target;
-    
+
     public GameObject Map;
 
     IEnumerator Start()
@@ -54,6 +59,33 @@ public class TileManager : MonoBehaviour
             lon = Input.location.lastData.longitude;
         }
 
+        while (lat == 0 && lon == 0)
+        {
+            lat = Input.location.lastData.latitude;
+            lon = Input.location.lastData.longitude;
+
+            yield return new WaitForSeconds(1f);
+        }
+
+        if (firstTime)
+        {
+            firstTime = false;
+
+            CoordinatesPair body = new CoordinatesPair(lat, lon);
+
+            Debug.Log("Body: " + JsonUtility.ToJson(body));
+
+            byte[] decoded = System.Text.Encoding.UTF8.GetBytes(JsonUtility.ToJson(body).ToString());
+
+            UnityWebRequest request = UnityWebRequest.Post(@"https://politicosgo.herokuapp.com/obras/closeto", "");
+            request.uploadHandler = new UploadHandlerRaw(decoded);
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            yield return request.SendWebRequest();
+
+            Debug.Log(request.downloadHandler.text);
+        }
+
         StartCoroutine(loadTiles(18));
 
         while (Input.location.isEnabledByUser)
@@ -81,9 +113,9 @@ public class TileManager : MonoBehaviour
             float x, y;
             Vector3 position = Vector3.zero;
 
-            geodeticOffsetInv(lat * Mathf.Deg2Rad, lon * Mathf.Deg2Rad, Oldlat * Mathf.Deg2Rad, Oldlon *Mathf.Deg2Rad, out x, out y);
+            geodeticOffsetInv(lat * Mathf.Deg2Rad, lon * Mathf.Deg2Rad, Oldlat * Mathf.Deg2Rad, Oldlon * Mathf.Deg2Rad, out x, out y);
 
-            if ((Oldlat - lat) < 0 && (Oldlon - lon) > 0  || (Oldlat - lat) > 0 && (Oldlon - lon) < 0)
+            if ((Oldlat - lat) < 0 && (Oldlon - lon) > 0 || (Oldlat - lat) > 0 && (Oldlon - lon) < 0)
             {
                 position = new Vector3(x, y, 0);
             }
@@ -175,7 +207,7 @@ public class TileManager : MonoBehaviour
             sinAlpha = cosU1 * cosU2 * sinLambda / sinSigma;
             cosSqAlpha = 1 - sinAlpha * sinAlpha;
             cos2SigmaM = cosSigma - 2 * sinU1 * sinU2 / cosSqAlpha;
-            if (  float.IsNaN(cos2SigmaM)) //isNaN
+            if (float.IsNaN(cos2SigmaM)) //isNaN
             {
                 cos2SigmaM = 0;  // equatorial line: cosSqAlpha=0 (§6)
             }
