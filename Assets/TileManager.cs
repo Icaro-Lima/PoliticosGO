@@ -85,13 +85,43 @@ public class TileManager : MonoBehaviour
 
             string response = request.downloadHandler.text;
 
-            response = "{ obras : " + response + " }";
+            string[] obras = response.Split('{');
 
-            System.IO.File.WriteAllText("leruado.txt", response);
+            for (int i = 1; i < obras.Length; i++)
+            {
+                double latitude = 0, longitude = 0;
+                {
+                    int index = obras[i].IndexOf("\"latitude\":");
+                    index += 11;
 
-            ObrasJson obras = JsonUtility.FromJson<ObrasJson>(response);
+                    int closeIndex = obras[i].IndexOf(",", index);
 
-            Debug.Log(obras.obras[0]);
+                    latitude = double.Parse(obras[i].Substring(index, closeIndex - index));
+                }
+
+                {
+                    int index = obras[i].IndexOf("\"longitude\":");
+                    index += 12;
+
+                    int closeIndex = obras[i].IndexOf(",", index);
+
+                    longitude = double.Parse(obras[i].Substring(index, closeIndex - index));
+                }
+
+                Debug.Log(latitude + ", " + longitude);
+
+                GameObject obra = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                obra.transform.SetParent(Map.transform);
+                obra.transform.position.Set(0, 0, 0);
+
+                Vector3 reeff = Quaternion.AngleAxis(lon, -Vector3.up) * Quaternion.AngleAxis(lat, -Vector3.right) * new Vector3(0, 0, 1);
+                Vector3 to = Quaternion.AngleAxis((float)longitude, -Vector3.up) * Quaternion.AngleAxis((float)latitude, -Vector3.right) * new Vector3(0, 0, 1);
+
+                //xoff *= 0.300122f;
+                //yoff *= 0.123043f;
+
+                obra.transform.Translate(to - reeff);
+            }
         }
 
         StartCoroutine(loadTiles(18));
