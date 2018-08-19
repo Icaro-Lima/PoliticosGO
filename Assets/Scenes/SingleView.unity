@@ -637,6 +637,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8627b65326ce82241bda11e9d6bd417f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  FatherCanvas: {fileID: 0}
+  PinTexture: {fileID: 2800000, guid: 3d862e25087db2c4d8359b0a61158247, type: 3}
   texture: {fileID: 0}
   Target: {fileID: 1221123353}
   Map: {fileID: 504379521}
