@@ -8,6 +8,10 @@ using UnityEngine.UI;
 public class TileManager : MonoBehaviour
 {
 
+    public GameObject FatherCanvas;
+
+    public Texture PinTexture;
+
     private bool firstTime = true;
 
     private float lat, lon;
@@ -108,19 +112,28 @@ public class TileManager : MonoBehaviour
                     longitude = double.Parse(obras[i].Substring(index, closeIndex - index));
                 }
 
-                Debug.Log(latitude + ", " + longitude);
+                Debug.Log("Coordenadas servidor: " + latitude + ", " + longitude);
 
                 GameObject obra = GameObject.CreatePrimitive(PrimitiveType.Quad);
                 obra.transform.SetParent(Map.transform);
                 obra.transform.position.Set(0, 0, 0);
 
-                Vector3 reeff = Quaternion.AngleAxis(lon, -Vector3.up) * Quaternion.AngleAxis(lat, -Vector3.right) * new Vector3(0, 0, 1);
-                Vector3 to = Quaternion.AngleAxis((float)longitude, -Vector3.up) * Quaternion.AngleAxis((float)latitude, -Vector3.right) * new Vector3(0, 0, 1);
+                Debug.Log("Screen: { width: " + Screen.width + " height: " + Screen.height + " }");
 
-                //xoff *= 0.300122f;
-                //yoff *= 0.123043f;
+                float latScale = 611 / 180.0f;  //latitude goes from 0(Npole) to 180(Spole)
+                float longiScale = 381 / 360.0f; //longitude goes from 0 to 360 (Greenwich)
 
-                obra.transform.Translate(to - reeff);
+                float yoff =  (float)(latitude * latScale - lat * latScale);
+                float xoff = (float)(longitude * longiScale - lon * longiScale);
+
+                RawImage image = obra.AddComponent<RawImage>();
+                image.texture = PinTexture;
+
+                obra.transform.localScale = new Vector3(1, 1, 1);
+
+                Debug.Log(xoff + " " + yoff);
+
+                obra.transform.Translate(xoff * 1500, yoff * 770, 0);
             }
         }
 
